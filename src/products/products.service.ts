@@ -16,6 +16,7 @@ export class ProductsService {
   ) {}
 
   async create(dto: CreateProductDto) {
+    // Инфа для поля category ищется по конкретному её айдишнику
     const category = await this.categoryRepository.findOne({
       where: { id: dto.categoryId },
     });
