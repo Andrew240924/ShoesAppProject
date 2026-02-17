@@ -18,7 +18,7 @@ export class Order {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column('decimal')
+  @Column('decimal', { precision: 10, scale: 2 })
   total_price: number;
 
   @Column()
