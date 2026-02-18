@@ -59,7 +59,7 @@ export class UsersService {
   async findById(id: number) {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['role'],
+      select: ['id', 'email'],
     });
   }
 }
