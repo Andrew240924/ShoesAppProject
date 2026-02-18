@@ -16,27 +16,35 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // Создание вариации
   @Post()
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
+  // Все модели (сгруппированные)
   @Get()
   findAll() {
     return this.productsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.findOne(id);
+  // Одна модель + все её вариации
+  @Get(':groupId')
+  findOne(@Param('groupId', ParseIntPipe) groupId: number) {
+    return this.productsService.findOne(groupId);
   }
 
-  @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
+  // Обновление конкретной вариации
+  @Patch('variant/:id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductDto,
+  ) {
     return this.productsService.update(id, dto);
   }
 
-  @Delete(':id')
+  // Удаление конкретной вариации
+  @Delete('variant/:id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.remove(id);
   }

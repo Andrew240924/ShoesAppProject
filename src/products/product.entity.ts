@@ -3,30 +3,44 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 import { Category } from '../categories/category.entity';
 
-@Entity('products')
+@Entity()
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // Группировка модели
+  @Column()
+  groupId: number;
+
   @Column()
   name: string;
 
-  @Column('text')
-  description: string;
+  @Column()
+  brand: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column()
+  image: string;
+
+  @Column('decimal')
   price: number;
 
+  // Конкретный цвет этой вариации
+  @Column()
+  color: string;
+
+  // Конкретный размер этой вариации
+  @Column()
+  size: number;
+
+  // Количество пар именно этой вариации
   @Column()
   stock: number;
 
   @ManyToOne(() => Category, (category) => category.products, {
-    nullable: false,
+    onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: 'category_id' })
   category: Category;
 }
