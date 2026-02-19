@@ -24,13 +24,13 @@ export class CartController {
   // 📦 Получить корзину
   @Get()
   getCart(@CurrentUser() user: JwtPayload) {
-    return this.cartService.getCart(user.id);
+    return this.cartService.getCart(user.sub);
   }
 
   // ➕ Добавить товар
   @Post()
   addToCart(@Body() dto: AddToCartDto, @CurrentUser() user: JwtPayload) {
-    return this.cartService.addToCart(user.id, dto);
+    return this.cartService.addToCart(user.sub, dto);
   }
 
   // 🔄 Изменить количество
@@ -39,7 +39,7 @@ export class CartController {
     @Body() dto: UpdateCartItemDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.cartService.updateQuantity(user.id, dto.productId, dto.quantity);
+    return this.cartService.updateQuantity(user.sub, dto.productId, dto.quantity);
   }
 
   // ❌ Удалить товар
@@ -48,6 +48,6 @@ export class CartController {
     @Param('productId', ParseIntPipe) productId: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.cartService.removeItem(user.id, productId);
+    return this.cartService.removeItem(user.sub, productId);
   }
 }

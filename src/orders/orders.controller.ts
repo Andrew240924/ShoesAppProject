@@ -11,11 +11,11 @@ export class OrdersController {
 
   @Post()
   create(@CurrentUser() user: JwtPayload) {
-    return this.ordersService.createOrder(user.id);
+    return this.ordersService.createOrder(user.sub);
   }
 
   @Get()
   myOrders(@CurrentUser() user: JwtPayload) {
-    return this.ordersService.getMyOrders(user.id);
+    return this.ordersService.getMyOrders(user.sub);
   }
 }
