@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { Product } from './product.entity';
 import { Category } from '../categories/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -56,6 +56,7 @@ export class ProductsService {
       if (!grouped[key]) {
         grouped[key] = {
           id: key,
+          groupId: key,
           name: product.name,
           brand: product.brand,
           image: product.image,
@@ -64,15 +65,23 @@ export class ProductsService {
           colors: new Set<string>(),
           sizes: new Set<number>(),
           totalStock: 0,
+          variants: [] as Array<{ variantId: number; color: string; size: number; stock: number }>,
         };
       }
 
       grouped[key].colors.add(product.color);
       grouped[key].sizes.add(product.size);
       grouped[key].totalStock += product.stock;
+      grouped[key].variants.push({
+        variantId: product.id,
+        color: product.color,
+        size: product.size,
+        stock: product.stock,
+      });
     }
 
     return Object.values(grouped).map((item: any) => ({
+      groupId: item.id,
       id: item.id,
       name: item.name,
       brand: item.brand,
@@ -82,6 +91,7 @@ export class ProductsService {
       color: Array.from(item.colors),
       size: Array.from(item.sizes),
       stock: item.totalStock,
+      variants: item.variants,
     }));
   }
 
@@ -99,6 +109,7 @@ export class ProductsService {
     const first = variants[0];
 
     return {
+      groupId: groupId,
       id: groupId,
       name: first.name,
       brand: first.brand,
@@ -106,8 +117,39 @@ export class ProductsService {
       price: first.price,
       category: first.category?.name,
       variants: variants.map(v => ({
+        variantId: v.id,
         id: v.id,
         color: v.color,
+        size: v.size,
+        stock: v.stock,
+      })),
+    };
+  }
+
+  // ✅ Получить вариации модели по цвету (только с stock > 0)
+  async findByGroupAndColor(groupId: number, color: string) {
+    const variants = await this.productRepository.find({
+      where: { groupId, color, stock: MoreThan(0) },
+      relations: ['category'],
+      order: { size: 'ASC' },
+    });
+
+    if (!variants.length) {
+      throw new NotFoundException('No variants found for this color');
+    }
+
+    const first = variants[0];
+
+    return {
+      groupId,
+      color,
+      name: first.name,
+      brand: first.brand,
+      image: first.image,
+      price: first.price,
+      category: first.category?.name,
+      sizes: variants.map(v => ({
+        variantId: v.id,
         size: v.size,
         stock: v.stock,
       })),

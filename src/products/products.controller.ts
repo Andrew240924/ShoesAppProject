@@ -34,6 +34,15 @@ export class ProductsController {
     return this.productsService.findOne(groupId);
   }
 
+  // Вариации модели по цвету (только доступные размеры)
+  @Get(':groupId/:color')
+  findByGroupAndColor(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('color') color: string,
+  ) {
+    return this.productsService.findByGroupAndColor(groupId, color);
+  }
+
   // Обновление конкретной вариации
   @Patch('variant/:id')
   update(

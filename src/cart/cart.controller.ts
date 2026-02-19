@@ -34,21 +34,20 @@ export class CartController {
   }
 
   // 🔄 Изменить количество
-  @Patch('item/:itemId')
+  @Patch('quantity')
   updateQuantity(
-    @Param('itemId', ParseIntPipe) itemId: number,
     @Body() dto: UpdateCartItemDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.cartService.updateQuantity(user.id, itemId, dto.quantity);
+    return this.cartService.updateQuantity(user.id, dto.productId, dto.quantity);
   }
 
   // ❌ Удалить товар
-  @Delete('item/:itemId')
+  @Delete('item/:productId')
   removeItem(
-    @Param('itemId', ParseIntPipe) itemId: number,
+    @Param('productId', ParseIntPipe) productId: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.cartService.removeItem(user.id, itemId);
+    return this.cartService.removeItem(user.id, productId);
   }
 }

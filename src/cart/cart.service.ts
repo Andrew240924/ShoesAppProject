@@ -25,6 +25,7 @@ export class CartService {
   ) {}
 
   async addToCart(userId: number, dto: AddToCartDto) {
+    // Ищем конкретный товар по id
     const product = await this.productRepository.findOne({
       where: { id: dto.productId },
     });
@@ -33,8 +34,9 @@ export class CartService {
       throw new NotFoundException('Product not found');
     }
 
+    // Проверяем остаток конкретной вариации
     if (product.stock < dto.quantity) {
-      throw new BadRequestException('Not enough stock');
+      throw new BadRequestException('Not enough stock for this variant');
     }
 
     let cart = await this.cartRepository.findOne({
@@ -54,6 +56,7 @@ export class CartService {
       cart = await this.cartRepository.save(cart);
     }
 
+    // Ищем существующий элемент в корзине по productId
     const existingItem = cart.items.find(
       (item) => item.product.id === dto.productId,
     );
@@ -97,11 +100,16 @@ export class CartService {
 
       return {
         itemId: item.id,
-        productId: item.product.id,
+        productId: item.product.id, // Возвращаем id вариации для фронтенда
+        groupId: item.product.groupId, // Также возвращаем groupId для группировки
         name: item.product.name,
+        brand: item.product.brand,
         price: Number(item.product.price),
         quantity: item.quantity,
         total: itemTotal,
+        color: item.product.color,
+        size: item.product.size,
+        image: item.product.image,
       };
     });
 
@@ -113,37 +121,48 @@ export class CartService {
     };
   }
 
-  async updateQuantity(userId: number, itemId: number, quantity: number) {
-    const cartItem = await this.cartItemRepository.findOne({
-      where: {
-        id: itemId,
-        cart: { user: { id: userId } },
-      },
-      relations: ['product'],
+  async updateQuantity(userId: number, productId: number, quantity: number) {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['items', 'items.product'],
     });
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
+    }
+
+    const cartItem = cart.items.find((item) => item.product.id === productId);
 
     if (!cartItem) {
       throw new NotFoundException('Cart item not found');
     }
 
+    // Проверяем остаток конкретной вариации
     if (quantity > cartItem.product.stock) {
-      throw new BadRequestException('Not enough stock');
+      throw new BadRequestException('Not enough stock for this variant');
     }
 
-    cartItem.quantity = quantity;
-
-    await this.cartItemRepository.save(cartItem);
+    if (quantity <= 0) {
+      await this.cartItemRepository.remove(cartItem);
+    } else {
+      cartItem.quantity = quantity;
+      await this.cartItemRepository.save(cartItem);
+    }
 
     return this.getCart(userId);
   }
 
-  async removeItem(userId: number, itemId: number) {
-    const cartItem = await this.cartItemRepository.findOne({
-      where: {
-        id: itemId,
-        cart: { user: { id: userId } },
-      },
+  async removeItem(userId: number, productId: number) {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['items', 'items.product'],
     });
+
+    if (!cart || !cart.items || cart.items.length === 0) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    const cartItem = cart.items.find((item) => item.product.id === productId);
 
     if (!cartItem) {
       throw new NotFoundException('Cart item not found');
@@ -165,5 +184,4 @@ export class CartService {
       cart: { id: cart.id } as any,
     });
   }
-
 }
