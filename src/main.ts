@@ -15,13 +15,8 @@ async function bootstrap() {
     .build();
 
   app.enableCors({
-    origin: true,
+    origin: 'http://localhost:5173',
     credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'ngrok-skip-browser-warning,Content-Type,Accept,Authorization,X-Requested-With',
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    headers: 'Access-Control-Allow-Origin',
   });
 
   const document = SwaggerModule.createDocument(app, config);
